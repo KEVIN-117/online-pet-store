@@ -7,23 +7,23 @@
 - File system 
 ```
 /client
-├── components                # Componentes reutilizables de la UI
-├── modules                   # Módulos funcionales de la aplicación
-│   ├── products              # Módulo de Productos
-│   │   ├── components        # Componentes específicos del módulo
-│   │   ├── pages             # Páginas específicas del módulo
-│   │   ├── services          # Servicios para consumir APIs
-│   │   ├── hooks               # Hooks específicos del módulo
-│   │   └── utils             # Utilidades específicas del módulo
+├── components                # reusable ui components
+├── modules                   # functional modules of the app oriented to screaming architecture
+│   ├── products              # product module
+│   │   ├── components        # module specific components
+│   │   ├── pages             # module specific pages
+│   │   ├── actions           # server actions to perform server actions
+│   │   ├── hooks             # module specific hooks
+│   │   └── utils             # module specific utilities
 │   │
-│   ├── orders                # Módulo de Pedidos
+│   ├── orders                # orders module
 │   │   ├── components
 │   │   ├── pages
 │   │   ├── hooks
 │   │   ├── services
 │   │   └── utils
 │   │
-│   └── users                 # Módulo de Usuarios
+│   └── users                 # users module
 │       ├── components
 │       ├── pages
 │       ├── hooks
@@ -31,15 +31,14 @@
 │       └── utils
 │
 ├── src
-│   ├── api                   # Configuración de Axios
-│   ├── assets                # Archivos estáticos
-│   ├── config                # Configuración de la aplicación
-│   └── utils                 # Utilidades y helpers generales
-│   └── app                  # Configuración de la aplicación
+│   ├── api                   # Axios store configuration
+│   ├── assets                # static files
+│   ├── config                # Application configuration
+│   └── app                   # root directory of th application
 │
-├── public                    # Archivos estáticos públicos
-├── styles                    # Archivos de estilo global
-└── utils                     # Utilidades y helpers generales
+├── public                    # public static files
+├── styles                    # global styles files
+└── utils                     # helpers and general utilities
 ```
 
 ## Server
@@ -48,22 +47,21 @@
 ```
 /backend
 ├── app
-│   ├── Core                  # Núcleo común de la aplicación (abstracciones, interfaces, etc.)
-│   │   ├── Contracts         # Interfaces generales
-│   │   ├── Exceptions        # Excepciones personalizadas
-│   │   ├── Providers         # Proveedores de servicios comunes
-│   │   └── Events            # Eventos comunes de la aplicación
+│   ├── Core                  # 
+│   │   ├── Contracts         # 
+│   │   ├── Exceptions        # 
+│   │   ├── Providers         # 
+│   │   └── Events            # 
 │   │
-│   ├── Modules               # Módulos funcionales
-│   │   ├── Products          # Módulo de Productos
-│   │   │   ├── Controllers   # Controladores específicos del módulo
-│   │   │   ├── Models        # Modelos específicos del módulo
-│   │   │   ├── Services      # Lógica de negocio
-│   │   │   ├── Repositories  # Repositorios para acceso a datos
-│   │   │   ├── Events        # Eventos específicos del módulo
-│   │   │   └── Listeners     # Escuchadores de eventos
+│   ├── Modules               # functional modules
+│   │   ├── Products          # product modules
+│   │   │   ├── Controllers   # specific controller of the module
+│   │   │   ├── Models        # specific models
+│   │   │   ├── Repositories  # data access repository
+│   │   │   ├── Events        # module events
+│   │   │   └── Listeners     # events listener
 │   │   │
-│   │   ├── Orders            # Módulo de Pedidos
+│   │   ├── Orders            # orders module
 │   │   │   ├── Controllers
 │   │   │   ├── Models
 │   │   │   ├── Services
@@ -71,35 +69,30 @@
 │   │   │   ├── Events
 │   │   │   └── Listeners
 │   │   │
-│   │   └── Users             # Módulo de Usuarios
+│   │   └── Users             # users module
 │   │       ├── Controllers
 │   │       ├── Models
 │   │       ├── Services
 │   │       ├── Repositories
 │   │       ├── Events
 │   │       └── Listeners
-│   │
-│   └── Shared                # Código compartido entre módulos
-│       ├── Traits            # Traits reutilizables
-│       ├── ValueObjects      # Objetos de valor
-│       └── DTOs              # Objetos de transferencia de datos
 │
-├── bootstrap                 # Bootstrap para el arranque de la aplicación
-├── config                    # Configuración general de la aplicación
-├── database                  # Migraciones, fábricas y seeders
-├── routes                    # Definición de rutas
-│   ├── api.php               # Rutas de la API
-│   └── web.php               # Rutas web
-├── storage                   # Almacenamiento de logs, caché, etc.
-└── tests                     # Pruebas unitarias y funcionales
+├── bootstrap                 # Bootstrap for start application
+├── config                    # general configurations
+├── database                  # migrations, factories and seeders
+├── routes                    # routes definition
+│   ├── api.php               # api routes
+│   └── web.php               # web routes
+├── storage                   # logs and cache storage
+└── tests                     # functional and unary test
 ```
 ## This project uses
 
 - Backend: Laravel (PHP) with DDD Modular Architecture.
 - Frontend: React with Next.js.
-- Mensajería/Eventos: Laravel Echo and Pusher for real-time updates.
-- Imágenes/Media: Cloudinary for image storage.
+- Messaging/Events: Laravel Echo and Pusher for real-time updates.
+- Images/Media: Cloudinary for image storage.
 - Data Base: PostgreSQL.
 - Cache: Redis for cache.
-- Autenticación: Laravel Passport or Sanctum for API authentication.
+- Authentication: Laravel Passport or Sanctum for API authentication.
 
