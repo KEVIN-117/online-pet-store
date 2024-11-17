@@ -1,0 +1,105 @@
+name: Docker Image CI client app
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+on:
+  schedule:
+    - cron: "45 5 * * *"
+  push:
+    branches: ["main"]
+    # Publish semver tags as releases.
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+  CLIENT_NAME: client
+  API_NAME: server
+
+jobs:
+  # Job 1: Preparar entorno y metadatos (común para todos)
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      image_name: ${{ steps.prepare.outputs.image_name }}
+      tags: ${{ steps.meta.outputs.tags }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Prepare image name (lowercase)
+        id: prepare
+        run: echo "::set-output name=image_name::$(echo '${{ env.IMAGE_NAME }}' | awk '{print tolower($0)}')"
+  # Job 2: Build y push de la imagen del cliente
+  build-client:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and push Docker client image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image_name }}/client:latest
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image_name }}/client:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image_name }}/client:${{ github.ref_name }}
+          labels: |
+            ${{ needs.setup.outputs.tags }}
+  # Job 3: Build y push de la imagen del servidor
+  build-server:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and push Docker server image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image_name }}/server:latest
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image_name }}/server:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ needs.setup.outputs.image_name }}/server:${{ github.ref_name }}
+          labels: |
+            ${{ needs.setup.outputs.tags }}
+  # Job 4: Firma de imágenes
+  sign-images:
+    needs: [build-client, build-server]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - name: Sign client image
+        env:
+          TAGS: ${{ needs.build-client.outputs.tags }}
+          DIGEST: ${{ steps.build-client.outputs.digest }}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+      - name: Sign server image
+        env:
+          TAGS: ${{ needs.build-server.outputs.tags }}
+          DIGEST: ${{ steps.build-server.outputs.digest }}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
