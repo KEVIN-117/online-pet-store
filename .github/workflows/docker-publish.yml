@@ -76,6 +76,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tags: ${{ needs.setup.outputs.tags }}
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -98,6 +104,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tags: ${{ needs.setup.outputs.tags }}
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -118,6 +130,12 @@ jobs:
   sign-images:
     needs: [build-client, build-server]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
     if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Sign client image
