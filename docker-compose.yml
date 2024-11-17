@@ -1,42 +1,61 @@
 version: "7.0"
 
 services:
-  client:
-    image: client:latest
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./client:/app
-    depends_on:
-      - server
-    environment:
-      - REACT_APP_SERVER_URL=http://server:5000
-
-  server:
-    image: server:latest
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./server:/app
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
-
   db:
-    image: postgres:latest
+    image: postgres
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=server
     volumes:
-      - ./db:/var/lib/postgresql/data
-      
+      - ./data/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    init: true
+
+  cache:
+    image: redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_HOST=cache
+      - REDIS_PORT=6379
+    volumes:
+      - ./data/cache:/usr/local/etc/redis
+
+  server:
+    build: ./server
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+      - cache
+    environment:
+      - TOKEN_SECRET=KuJcCQ0is27L/z926N9bzAdoKtkMBhkHxvR84wPBW8Q=
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/server?schema=public
+      - PORT=3001
+      - NODE_ENV=production
+    develop:
+      watch:
+        - action: sync
+          path: ./server
+          target: /app
+
+  client:
+    build: ./client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    environment:
+      - REACT_APP_SERVER_URL=http://server:3001
+    develop:
+      watch:
+        - action: sync
+          path: ./client
+          target: /app

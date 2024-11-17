@@ -1,21 +1,19 @@
-FROM bitnami/laravel:latest as base
+FROM node:20.18.0-alpine
+
 WORKDIR /app
+
+COPY package.json ./
+
+COPY yarn.lock ./
+
+RUN npm install
+
 COPY . .
 
-# Define test stage
-FROM base as test
-RUN composer install
-RUN php artisan test
+RUN npm run build
 
-# Define build stage
-FROM base as build
-RUN composer install
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
+RUN npx prisma generate
 
-# Define production stage
-FROM base as prod
-COPY --from=build /app /app
-EXPOSE 3000
-CMD ["php", "artisan", "serve"]
+EXPOSE $PORT
+
+CMD ["node", "dist/main.js"]
