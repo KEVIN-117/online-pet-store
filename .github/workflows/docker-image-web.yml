@@ -2,9 +2,9 @@ name: Docker Image CI web app
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -14,19 +14,20 @@ env:
   NAME: apis
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Convert IMAGE_NAME to lowercase
-      id: prepare
-      run: echo "image_name=$(echo '${{ env.IMAGE_NAME }}' | awk '{print tolower($0)}')" >> $GITHUB_ENV
-    - name: Build the Docker image
-      run: |
-        echo ${{ env.REGISTRY }}
-        echo ${{ env.IMAGE_NAME }}
-        echo ${{ env.NAME }}  
-        echo ${{ env.image_name }}
+      - uses: actions/checkout@v4
+      - name: Convert IMAGE_NAME to lowercase
+        id: prepare
+        run: echo "image_name=$(echo '${{ env.IMAGE_NAME }}' | awk '{print tolower($0)}')" >> $GITHUB_ENV
+      - name: Build the Docker image
+        run: |
+          echo ${{ env.REGISTRY }}
+          echo ${{ env.IMAGE_NAME }}
+          echo ${{ env.NAME }}  
+          echo ${{ env.image_name }}
+          echo ${{ env.REGISTRY }}/${{ env.image_name }}/${{ env.NAME }}:latest
+          echo ${{ env.REGISTRY }}/${{ env.image_name }}/${{ env.NAME }}:${{ github.sha }}
+          echo ${{ env.REGISTRY }}/${{ env.image_name }}/${{ env.NAME }}:${{ github.ref_name }}
