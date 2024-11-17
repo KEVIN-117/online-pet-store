@@ -7,13 +7,13 @@ name: Docker Image CI client app
 
 on:
   schedule:
-    - cron: '45 5 * * *'
+    - cron: "45 5 * * *"
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    tags: ["v*.*.*"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -22,10 +22,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   NAME: client
 
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,7 +42,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
         with:
-          cosign-release: 'v2.2.4'
+          cosign-release: "v2.2.4"
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -70,6 +68,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      # Crear una variable 'image_name' con el nombre en minúsculas
+      - name: Convert IMAGE_NAME to lowercase
+        id: prepare
+        run: echo "image_name=$(echo '${{ env.IMAGE_NAME }}' | awk '{print tolower($0)}')" >> $GITHUB_ENV
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
@@ -80,10 +83,10 @@ jobs:
           file: ./client/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.NAME }}:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.NAME }}:${{ steps.meta.outputs.tags }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ env.NAME }}:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ env.image_name }}/${{ env.NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.image_name }}/${{ env.NAME }}:${{ steps.meta.outputs.tags }}
+            ${{ env.REGISTRY }}/${{ env.image_name }}/${{ env.NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.image_name }}/${{ env.NAME }}:${{ github.ref_name }}
           labels: |
             ${{ steps.meta.outputs.labels }}
           cache-from: type=gha

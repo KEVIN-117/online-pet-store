@@ -25,4 +25,4 @@ jobs:
       run: |
         echo ${{ env.REGISTRY }}
         echo ${{ env.IMAGE_NAME }}
-        echo ${{ env.NAME }}
+        echo ${{ env.NAME }}  
