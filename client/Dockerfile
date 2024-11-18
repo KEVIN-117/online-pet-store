@@ -1,5 +1,5 @@
 # Define base stage
-FROM node as base
+FROM node:20.18.0-alpine as base
 WORKDIR /app
 COPY yarn.lock package.json ./
 RUN yarn install
