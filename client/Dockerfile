@@ -25,6 +25,6 @@ COPY --from=build /app/.next ./.next
 
 
 
-EXPOSE 3000
+EXPOSE $PORT
 
-CMD ["yarn", "dev"]
+CMD ["yarn", "dev", "-p", "$PORT"]
