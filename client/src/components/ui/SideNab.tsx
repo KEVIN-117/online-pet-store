@@ -1,8 +1,9 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { IconArrowNarrowLeft, IconArrowNarrowRight, IconMenu2, IconX } from "@tabler/icons-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react"
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ReactNode, JSX, Dispatch, SetStateAction, createContext, useContext, use, useState, ComponentProps } from "react"
 
 interface LinkProps {
@@ -16,6 +17,7 @@ interface SidebarContextProps {
     setOpen: Dispatch<SetStateAction<boolean>>
     animate: boolean;
 }
+
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(undefined);
 
@@ -83,7 +85,7 @@ export function DesktopSidebar({ className, children, ...props }: ComponentProps
             </motion.button>
             <motion.div
                 className={cn(
-                    "h-full px-4 py-4 hidden md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-[300px] flex-shrink-0",
+                    "h-full px-4 py-4 hidden md:flex md:flex-col bg-gradient-to-br from-indigo-950 via-slate-800 to-slate-950 w-[300px] flex-shrink-0",
                     className
                 )}
                 animate={{
@@ -148,63 +150,202 @@ export function MobileSidebar({ className, children, ...props }: ComponentProps<
 
 }
 
-export function SidebarLink({ link, animate: isAnimate, className, ...props }: { link: LinkProps, className?: string, props?: LinkProps, animate: boolean }) {
+export function SidebarLink({
+    link,
+    animate: isAnimate,
+    className,
+    ...props
+}: {
+    link: LinkProps
+    className?: string
+    props?: any
+    animate: boolean
+}) {
     const { href, icon, label } = link
-    const { isOpen, animate } = useSidebar();
+    const { isOpen, animate } = useSidebar()
+    const pathname = usePathname()
+    const isActive = pathname === href
+
+    // Variants for the icon container animation
+    const iconContainerVariants = {
+        hover: {
+            scale: 1.1,
+            transition: {
+                type: "spring",
+                stiffness: 400,
+                damping: 10,
+            },
+        },
+        tap: {
+            scale: 0.9,
+            transition: {
+                type: "spring",
+                stiffness: 400,
+                damping: 10,
+            },
+        },
+    }
+
+    // Variants for the text animation
+    const textVariants = {
+        closed: {
+            opacity: 0,
+            width: 0,
+            x: -10,
+            transition: {
+                duration: 0.2,
+            },
+        },
+        open: {
+            opacity: 1,
+            width: "auto",
+            x: 0,
+            transition: {
+                duration: 0.3,
+                delay: 0.1,
+            },
+        },
+    }
+
+    // Variants for the active indicator
+    const activeIndicatorVariants = {
+        initial: {
+            opacity: 0,
+            height: 0,
+        },
+        animate: {
+            opacity: 1,
+            height: "60%",
+            transition: {
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+            },
+        },
+    }
+
+    // Variants for the hover background
+    const hoverBgVariants = {
+        initial: {
+            opacity: 0,
+            scale: 0.85,
+        },
+        hover: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+                duration: 0.2,
+            },
+        },
+    }
+
     return (
-        <>
-            {
-                isAnimate ? (
-                    <Link
-                        href={href}
-                        className={
-                            cn(
-                                "flex items-center relative justify-start gap-2 group group/sidebar py-2",
-                                className
-                            )
-                        }
-                        {...props}
-                    >
-                        <span className="group-hover:bg-sky-800 py-2 px-2 rounded-xl ml-4 group-hover:scale-105 transition duration-150">
-                            {icon}
-                        </span>
+        <motion.div className={cn("relative mx-2 my-1 group", className)} whileHover="hover" whileTap="tap">
+            {/* Active indicator */}
+            {isActive && (
+                <motion.div
+                    className="absolute left-0 top-1/2 w-1.5 bg-primary rounded-r-full -translate-y-1/2"
+                    layoutId="activeIndicator"
+                    initial="initial"
+                    animate="animate"
+                    variants={activeIndicatorVariants}
+                />
+            )}
 
-                        <span className="after:content-[''] after:absolute after:rounded-xl after:-left-4 after:top-0 after:w-5 after:h-full after:flex after:justify-center after:items-center after:bg-sky-800 after:opacity-0 after:transition-opacity after:group-hover:opacity-100">
+            {/* Hover background */}
+            <motion.div
+                className={cn(
+                    "absolute inset-0 rounded-xl",
+                    isActive ? "bg-primary/10" : "bg-slate-700/30 dark:bg-slate-800/40",
+                )}
+                initial="initial"
+                variants={hoverBgVariants}
+            />
 
-                        </span>
+            <Link
+                href={href}
+                className={cn(
+                    "flex items-center relative justify-start gap-3 py-2.5 px-3 rounded-xl z-10",
+                    isActive ? "text-primary" : "text-slate-300 hover:text-white",
+                )}
+                {...props}
+            >
+                {/* Icon container with animations */}
+                <motion.div
+                    className={cn(
+                        "flex items-center justify-center h-9 w-9 rounded-lg",
+                        isActive
+                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                            : "text-slate-300 group-hover:text-white",
+                    )}
+                    variants={iconContainerVariants}
+                >
+                    {icon}
+                </motion.div>
 
-                        <motion.span
-                            animate={{
-                                display: animate ? (isOpen ? "inline-block" : "none") : "inline-block",
-                                opacity: animate ? (isOpen ? 1 : 0) : 1,
-                            }}
-                            className="text-neutral-700 dark:text-neutral-200 group-hover:bg-sky-800 py-2 px-4 rounded-xl text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block"
-                        >
-                            {label}
-                        </motion.span>
-                    </Link >
-                ) : (
-                    <Link
-                        href={href}
+                {/* Label with animations */}
+                <motion.div
+                    className="overflow-hidden"
+                    initial={isOpen ? "open" : "closed"}
+                    animate={animate ? (isOpen ? "open" : "closed") : "open"}
+                    variants={textVariants}
+                >
+                    <motion.span
                         className={cn(
-                            "flex items-center relative justify-start gap-2 group group/sidebar py-2",
-                            className
+                            "text-sm font-medium whitespace-nowrap",
+                            isActive ? "text-primary" : "text-slate-300 group-hover:text-white",
                         )}
-                        {...props}
                     >
-                        {icon}
-                        <motion.span
-                            animate={{
-                                display: animate ? (isOpen ? "inline-block" : "none") : "inline-block",
-                                opacity: animate ? (isOpen ? 1 : 0) : 1,
-                            }}
-                            className="text-neutral-700 dark:text-neutral-200 group-hover:bg-sky-800 py-2 px-4 rounded-xl text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block"
-                        >
-                            {label}
-                        </motion.span>
-                    </Link>
-                )
-            }
-        </>
-    );
-};
+                        {label}
+                    </motion.span>
+                </motion.div>
+
+                {/* Subtle glow effect for active items */}
+                {isActive && (
+                    <motion.div
+                        className="absolute inset-0 rounded-xl bg-primary/5 blur-xl"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.5 }}
+                        transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
+                    />
+                )}
+            </Link>
+
+            {/* Subtle particle effect on hover */}
+            <motion.div
+                className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+                initial={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+            >
+                {isActive && (
+                    <div className="relative">
+                        {[...Array(3)].map((_, i) => (
+                            <motion.div
+                                key={i}
+                                className="absolute h-1 w-1 rounded-full bg-primary"
+                                initial={{
+                                    x: 0,
+                                    y: 0,
+                                    opacity: 0.7,
+                                }}
+                                animate={{
+                                    x: Math.random() * 20 - 10,
+                                    y: Math.random() * 20 - 10,
+                                    opacity: 0,
+                                    scale: Math.random() * 0.5 + 0.5,
+                                }}
+                                transition={{
+                                    duration: Math.random() * 1 + 0.5,
+                                    repeat: Number.POSITIVE_INFINITY,
+                                    repeatType: "loop",
+                                    delay: i * 0.2,
+                                }}
+                            />
+                        ))}
+                    </div>
+                )}
+            </motion.div>
+        </motion.div>
+    )
+}
+
