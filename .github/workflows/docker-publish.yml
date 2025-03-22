@@ -6,8 +6,6 @@ name: Docker Image CI client app
 # documentation.
 
 on:
-  schedule:
-    - cron: "45 5 * * *"
   push:
     branches: ["main"]
     # Publish semver tags as releases.
